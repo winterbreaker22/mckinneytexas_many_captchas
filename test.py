@@ -60,43 +60,54 @@ async def main():
         browser = await p.firefox.launch(headless=False)
         context = await browser.new_context()
 
-        page = await context.new_page()
-        await page.goto(login_url)
+        start_page = await context.new_page()
+        await start_page.goto(login_url)
 
-        await page.wait_for_selector("text='Research & Learn'")
-        await page.click("text='Research & Learn'")
+        await start_page.wait_for_selector("text='Research & Learn'")
+        await start_page.click("text='Research & Learn'")
 
-        await page.wait_for_selector("#main-content")
-        await page.click("#main-content .col-xs-12 > .row > .col-xs-4:nth-of-type(3) a img")
+        async with context.expect_page() as resource_list_page_info:
+            await start_page.click("text='Research & Learn'")  
+        resource_list_page = await resource_list_page_info.value
+        await resource_list_page.wait_for_load_state()
+        await resource_list_page.wait_for_selector("#main-content")
 
-        await page.wait_for_selector("text='Open Resource'")
-        await page.click("text='Open Resource'")
+        await resource_list_page.click("#main-content .col-xs-12 > .row > .col-xs-4:nth-of-type(3) a img")
 
-        await page.check("#chkAgree") 
-        await page.click(".action-agree")
+        await resource_list_page.wait_for_selector("text='Open Resource'")
 
-        await page.wait_for_selector("#matchcode")
-        await page.fill("#matchcode", card_number)
-        await page.click("#Log On")
+        async with context.expect_page() as home_page_info:
+            await resource_list_page.click("text='Open Resource'")
+        home_page = await home_page_info.value
+        await home_page.wait_for_load_state()
 
-        await asyncio.sleep(1)
-        await page.mouse.click(150, 150)
-        await page.click("text='U.S. Businesses'")
+        # await page.check("#chkAgree") 
+        # await page.click(".action-agree")
+
+        # await page.wait_for_selector("#matchcode")
+        # await page.fill("#matchcode", card_number)
+        # await page.click("#Log On")
+
+        # await asyncio.sleep(1)
+        # await page.mouse.click(150, 150)
+
+        await home_page.wait_for_selector("text='U.S. Businesses'")
+        await home_page.click("text='U.S. Businesses'")
         
-        await page.wait_for_selector("text='Advanced Search'")
-        await page.click("text='Advanced Search'")
+        await home_page.wait_for_selector("text='Advanced Search'")
+        await home_page.click("text='Advanced Search'")
 
-        await page.wait_for_selector("a.greenMedium")
-        await page.click("a.greenMedium")
+        await home_page.wait_for_selector("a.greenMedium")
+        await home_page.click("a.greenMedium")
 
-        await page.wait_for_selector(".pager .page")
-        await page.click(".pager .page")
-        await page.fill(".pager input[type='text']", "91")
-        await page.keyboard.press("Enter")
+        await home_page.wait_for_selector(".pager .page")
+        await home_page.click(".pager .page")
+        await home_page.fill(".pager input[type='text']", "91")
+        await home_page.keyboard.press("Enter")
 
-        captcha_exist = await page.locator("#captchaValidation").count()
+        captcha_exist = await home_page.locator("#captchaValidation").count()
         if captcha_exist > 0:
-            captcha_id = get_mt_captcha_token(site_key, page.url)
+            captcha_id = get_mt_captcha_token(site_key, home_page.url)
             if captcha_id:
                 print(f'CAPTCHA ID: {captcha_id}')
                 solution = get_captcha_solution(captcha_id)
@@ -104,20 +115,18 @@ async def main():
                     print(f'Solved CAPTCHA: {solution}')
 
                     # Inject the MTCaptcha token into the form and submit 
-                    await page.fill("#g-recaptcha-response-1cze57gr6ofv", solution)
+                    await home_page.fill("#g-recaptcha-response-1cze57gr6ofv", solution)
                     print('Captcha solution injected successfully.')
 
                     # Wait for navigation after solving CAPTCHA
-                    await page.wait_for_load_state('networkidle')
+                    await home_page.wait_for_load_state('networkidle')
                     print ('arrived!!!')
-                    await page.wait_for_timeout(1000)
-                    await page.click('input[type="submit"]')
+                    await home_page.wait_for_timeout(1000)
+                    await home_page.click('input[type="submit"]')
                     print ('done??')
-                    await page.wait_for_timeout(7000)
-                    print (page.url)
-
-                    if page.url == 'https://shop.garena.my/app/100067/buy/0':
-                        print('Login Success!')                         
+                    await home_page.wait_for_timeout(7000)
+                    print (home_page.url)
+                     
                 else:
                     print('Failed to solve CAPTCHA')
                     return
@@ -125,12 +134,12 @@ async def main():
                 print('Failed to get CAPTCHA ID')
                 return
         
-        result_exist = await page.locator("#searchResultsHeader").count()
+        result_exist = await home_page.locator("#searchResultsHeader").count()
         if result_exist:
-            await page.click("#searchResultsHeader #checkboxCol")
-            await page.click(".pager .next")
+            await home_page.click("#searchResultsHeader #checkboxCol")
+            await home_page.click(".pager .next")
 
-        await page.click('#searchResults .menuPagerBar a.download')
+        await home_page.click('#searchResults .menuPagerBar a.download')
         
         print ('Congratulations!')
 
