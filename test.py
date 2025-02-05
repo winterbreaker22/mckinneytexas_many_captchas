@@ -76,20 +76,21 @@ async def main():
 
         await resource_list_page.wait_for_selector("text='Open Resource'")
 
-        async with context.expect_page() as home_page_info:
+        async with context.expect_page() as terms_page_info:
             await resource_list_page.click("text='Open Resource'")
+        terms_page = await terms_page_info.value
+        await terms_page.wait_for_load_state()
+        await terms_page.wait_for_selector("#chkAgree")
+        await terms_page.click("#chkAgree")
+        await terms_page.click(".action-agree")
+        await terms_page.wait_for_selector("#matchcode")
+        await terms_page.fill("#matchcode", card_number)
+        await asyncio.sleep(1)
+        await terms_page.mouse.click(150, 150)
+
+        async with context.expect_page() as home_page_info:
+            await terms_page.click("text='Log On'")
         home_page = await home_page_info.value
-        await home_page.wait_for_load_state()
-
-        # await page.check("#chkAgree") 
-        # await page.click(".action-agree")
-
-        # await page.wait_for_selector("#matchcode")
-        # await page.fill("#matchcode", card_number)
-        # await page.click("#Log On")
-
-        # await asyncio.sleep(1)
-        # await page.mouse.click(150, 150)
 
         await home_page.wait_for_selector("text='U.S. Businesses'")
         await home_page.click("text='U.S. Businesses'")
