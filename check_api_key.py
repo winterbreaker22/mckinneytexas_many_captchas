@@ -17,7 +17,6 @@ def check_balance(api_key):
         print(f'Request Error: {e}')
         return None
 
-# Example usage
 if __name__ == "__main__":
     balance = check_balance(API_KEY)
     if balance is not None:
