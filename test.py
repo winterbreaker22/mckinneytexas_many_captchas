@@ -6,6 +6,7 @@ from twocaptcha import TwoCaptcha
 
 API_KEY = 'bb8ef87d36b4959711ed4d1c0ebcd930'
 solver = TwoCaptcha(API_KEY)
+card_number = '29882001815412'
 
 def get_mt_captcha_token(site_key, page_url):    
 
@@ -68,46 +69,66 @@ async def main():
         await page.wait_for_selector("#content-container")
         await page.click("#content-container .col-xs-12 > .row > .col-xs-4:nth-of-type(3) a img")
 
+        await page.wait_for_selector("text='Open Resource'")
+        await page.click("text='Open Resource'")
+
         await page.check("#chkAgree") 
-        is_checked = await page.is_checked("#chkAgree")
-        if is_checked:
-            await page.click(".action-agree")
+        await page.click(".action-agree")
 
-        await page.wait_for_selector('iframe')
+        await page.wait_for_selector("#matchcode")
+        await page.fill("#matchcode", card_number)
+        await page.click("#Log On")
 
-        captcha_id = get_mt_captcha_token(site_key, page_url)
-        if captcha_id:
-            print(f'CAPTCHA ID: {captcha_id}')
-            solution = get_captcha_solution(captcha_id)
-            if solution:
-                print(f'Solved CAPTCHA: {solution}')
-
-                # Inject the MTCaptcha token into the form and submit 
-                iframe_element = await page.wait_for_selector('iframe') 
-                frame = await iframe_element.content_frame()
-                await frame.wait_for_load_state('networkidle')
-                await frame.evaluate(f'token => window.captchaCallback("{solution}")', solution)
-                print('Captcha solution injected successfully.')
-
-                # Wait for navigation after solving CAPTCHA
-                await page.wait_for_load_state('networkidle')
-                print ('arrived!!!')
-                await page.wait_for_timeout(1000)
-                await page.click('input[type="submit"]')
-                print ('done??')
-                await page.wait_for_timeout(7000)
-                print (page.url)
-
-                if page.url == 'https://shop.garena.my/app/100067/buy/0':
-                    print('Login Success!') 
-                       
-            else:
-                print('Failed to solve CAPTCHA')
-                return
-        else:
-            print('Failed to get CAPTCHA ID')
-            return
+        await asyncio.sleep(1)
+        await page.mouse.click(150, 150)
+        await page.click("text='U.S. Businesses'")
         
+        await page.wait_for_selector("text='Advanced Search'")
+        await page.click("text='Advanced Search'")
+
+        await page.wait_for_selector("a.greenMedium")
+        await page.click("a.greenMedium")
+
+        await page.wait_for_selector(".pager .page")
+        await page.click(".pager .page")
+        await page.fill(".pager input[type='text']", "91")
+        await page.keyboard.press("Enter")
+
+        captcha_exist = await page.locator("#captchaValidation").count()
+        if captcha_exist > 0:
+            captcha_id = get_mt_captcha_token(site_key, page.url)
+            if captcha_id:
+                print(f'CAPTCHA ID: {captcha_id}')
+                solution = get_captcha_solution(captcha_id)
+                if solution:
+                    print(f'Solved CAPTCHA: {solution}')
+
+                    # Inject the MTCaptcha token into the form and submit 
+                    await page.fill("#g-recaptcha-response-1cze57gr6ofv", solution)
+                    print('Captcha solution injected successfully.')
+
+                    # Wait for navigation after solving CAPTCHA
+                    await page.wait_for_load_state('networkidle')
+                    print ('arrived!!!')
+                    await page.wait_for_timeout(1000)
+                    await page.click('input[type="submit"]')
+                    print ('done??')
+                    await page.wait_for_timeout(7000)
+                    print (page.url)
+
+                    if page.url == 'https://shop.garena.my/app/100067/buy/0':
+                        print('Login Success!')                         
+                else:
+                    print('Failed to solve CAPTCHA')
+                    return
+            else:
+                print('Failed to get CAPTCHA ID')
+                return
+        
+        result_exist = await page.locator("#searchResultsHeader").count()
+        if result_exist:
+            await page.click("#searchResultsHeader #checkboxCol")
+            await page.click(".pager .next")
 
         await page.click('input[type="submit"]')
         await page.wait_for_selector('#form')
