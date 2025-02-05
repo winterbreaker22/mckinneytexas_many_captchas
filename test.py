@@ -52,7 +52,7 @@ def get_captcha_solution(captcha_id):
 
 async def main():
     site_key = '2942779……c24-acf7-29d4b80d2106'
-    login_url = f'https://www.referenceusa.com/Static/TermsAndConditions/True/855773dd-5695-4062-bae4-752955cfb3d6/https%5E3a%5E2f%5E2fwww.referenceusa.com%5E2f/ValidReferringUrlChallengeRequired'
+    login_url = f'https://www.mckinneytexas.org/116/Library'
     page_url = 'https://shop.garena.my/app/100067/idlogin?next=/app/100067/buy/0'
 
     async with async_playwright() as p:
@@ -61,6 +61,17 @@ async def main():
 
         page = await context.new_page()
         await page.goto(login_url)
+
+        await page.wait_for_selector("text='Research & Learn'")
+        await page.click("text='Research & Learn")
+
+        await page.wait_for_selector("#content-container")
+        await page.click("#content-container .col-xs-12 > .row > .col-xs-4:nth-of-type(3) a img")
+
+        await page.check("#chkAgree") 
+        is_checked = await page.is_checked("#chkAgree")
+        if is_checked:
+            await page.click(".action-agree")
 
         await page.wait_for_selector('iframe')
 
