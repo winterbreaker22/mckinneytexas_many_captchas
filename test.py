@@ -89,7 +89,7 @@ async def main():
         await terms_page.mouse.click(150, 150)
 
         async with context.expect_page() as home_page_info:
-            await terms_page.click("text='Log On'")
+            await terms_page.click(".buttons .originButton")
         home_page = await home_page_info.value
 
         await home_page.wait_for_selector("text='U.S. Businesses'")
