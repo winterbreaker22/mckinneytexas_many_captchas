@@ -64,7 +64,7 @@ async def main():
         await page.goto(login_url)
 
         await page.wait_for_selector("text='Research & Learn'")
-        await page.click("text='Research & Learn")
+        await page.click("text='Research & Learn'")
 
         await page.wait_for_selector("#content-container")
         await page.click("#content-container .col-xs-12 > .row > .col-xs-4:nth-of-type(3) a img")
