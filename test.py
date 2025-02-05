@@ -76,23 +76,19 @@ async def main():
 
         await resource_list_page.wait_for_selector("text='Open Resource'")
 
-        async with context.expect_page() as terms_page_info:
-            await resource_list_page.click("text='Open Resource'")
-        terms_page = await terms_page_info.value
-        await terms_page.wait_for_load_state()
-        await terms_page.wait_for_selector("#chkAgree")
-        await terms_page.click("#chkAgree")
-        await terms_page.click(".action-agree")
-        await terms_page.wait_for_selector("#matchcode")
-        await terms_page.fill("#matchcode", card_number)
-
         async with context.expect_page() as home_page_info:
-            await terms_page.click("#logOn .buttons .originButton > span > span")
+            await resource_list_page.click("text='Open Resource'")
         home_page = await home_page_info.value
-        await terms_page.wait_for_load_state()
+        await home_page.wait_for_load_state()
+        await home_page.wait_for_selector("#chkAgree")
+        await home_page.click("#chkAgree")
+        await home_page.click(".action-agree")
+        await home_page.wait_for_selector("#matchcode")
+        await home_page.fill("#matchcode", card_number)
+        await home_page.click("#logOn .buttons .originButton > span > span")
 
         await asyncio.sleep(1)
-        await terms_page.mouse.click(150, 150)
+        await home_page.mouse.click(150, 150)
 
         await home_page.wait_for_selector("text='U.S. Businesses'")
         await home_page.click("text='U.S. Businesses'")
