@@ -139,6 +139,7 @@ async def main():
             if result_exist > 0:
                 await home_page.click("#searchResultsHeader #checkboxCol")
                 await home_page.click(".pager .next")
+                await asyncio.sleep(2)
 
         await home_page.click('#searchResults .menuPagerBar a.download')
         await home_page.wait_for_selector("#detailDetail")
