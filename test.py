@@ -99,51 +99,53 @@ async def main():
 
         await home_page.wait_for_selector(".pager .page")
         await home_page.click(".pager .page")
-        await home_page.fill(".pager input[type='text']", "91")
+        await home_page.fill(".pager input[type='text']", "101")
         await home_page.keyboard.press("Enter")
 
-        captcha_exist = await home_page.locator("#hcaptcha").count()
-        if captcha_exist > 0:
-            print ("sitekey: ", site_key)
-            print("page url: ", home_page.url)
-            captcha_id = get_mt_captcha_token(site_key, home_page.url)
-            if captcha_id:
-                print(f'CAPTCHA ID: {captcha_id}')
-                solution = get_captcha_solution(captcha_id)
-                if solution:
-                    print(f'Solved CAPTCHA: {solution}')
+        for i in range(10):
+            captcha_exist = await home_page.locator("#hcaptcha").count()
+            if captcha_exist > 0:
+                print("Captcha!!!")
+                print ("sitekey: ", site_key)
+                print("page url: ", home_page.url)
+                captcha_id = get_mt_captcha_token(site_key, home_page.url)
+                if captcha_id:
+                    print(f'CAPTCHA ID: {captcha_id}')
+                    solution = get_captcha_solution(captcha_id)
+                    if solution:
+                        print(f'Solved CAPTCHA: {solution}')
 
-                    # Inject the MTCaptcha token into the form and submit 
-                    await home_page.fill("#g-recaptcha-response-1cze57gr6ofv", solution)
-                    print('Captcha solution injected successfully.')
+                        # Inject the MTCaptcha token into the form and submit 
+                        await home_page.fill("#g-recaptcha-response-1cze57gr6ofv", solution)
+                        print('Captcha solution injected successfully.')
 
-                    # Wait for navigation after solving CAPTCHA
-                    await home_page.wait_for_load_state('networkidle')
-                    print ('arrived!!!')
-                    await home_page.wait_for_timeout(1000)
-                    await home_page.click('input[type="submit"]')
-                    print ('done??')
-                    await home_page.wait_for_timeout(7000)
-                    print (home_page.url)
-                     
+                        # Wait for navigation after solving CAPTCHA
+                        await home_page.wait_for_load_state('networkidle')
+                        print ('arrived!!!')
+                        await home_page.wait_for_timeout(1000)
+                        await home_page.click('input[type="submit"]')
+                        print ('done??')
+                        await home_page.wait_for_timeout(7000)
+                        print (home_page.url)
+                        
+                    else:
+                        print('Failed to solve CAPTCHA')
+                        return
                 else:
-                    print('Failed to solve CAPTCHA')
+                    print('Failed to get CAPTCHA ID')
                     return
-            else:
-                print('Failed to get CAPTCHA ID')
-                return
-        
-        result_exist = await home_page.locator("#searchResultsHeader").count()
-        if result_exist > 0:
-            await home_page.click("#searchResultsHeader #checkboxCol")
-            await home_page.click(".pager .next")
+            
+            result_exist = await home_page.locator("#searchResultsHeader").count()
+            if result_exist > 0:
+                await home_page.click("#searchResultsHeader #checkboxCol")
+                await home_page.click(".pager .next")
 
-        await home_page.click('#searchResults .menuPagerBar a.download')
-        await home_page.wait_for_selector("#detailLevel")
-        await home_page.click("#detailLevel")
-        await home_page.click("text='Download Records'")
+            await home_page.click('#searchResults .menuPagerBar a.download')
+            await home_page.wait_for_selector("#detailLevel")
+            await home_page.click("#detailLevel")
+            await home_page.click("text='Download Records'")
 
-        print ('Congratulations!')
+            print ('Congratulations!')
 
         await browser.close()
 
