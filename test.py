@@ -9,7 +9,6 @@ solver = TwoCaptcha(API_KEY)
 card_number = '29882001815412'
 
 def get_mt_captcha_token(site_key, page_url):    
-
     attempts = 0
     max_attempts = 20
 
@@ -54,7 +53,6 @@ def get_captcha_solution(captcha_id):
 async def main():
     site_key = '2942779……c24-acf7-29d4b80d2106'
     login_url = f'https://www.mckinneytexas.org/116/Library'
-    page_url = 'https://shop.garena.my/app/100067/idlogin?next=/app/100067/buy/0'
 
     async with async_playwright() as p:
         browser = await p.firefox.launch(headless=False)
@@ -104,8 +102,10 @@ async def main():
         await home_page.fill(".pager input[type='text']", "91")
         await home_page.keyboard.press("Enter")
 
-        captcha_exist = await home_page.locator("#captchaValidation").count()
+        captcha_exist = await home_page.locator("#hcaptcha").count()
         if captcha_exist > 0:
+            print ("sitekey: ", site_key)
+            print("page url: ", home_page.url)
             captcha_id = get_mt_captcha_token(site_key, home_page.url)
             if captcha_id:
                 print(f'CAPTCHA ID: {captcha_id}')
@@ -134,12 +134,15 @@ async def main():
                 return
         
         result_exist = await home_page.locator("#searchResultsHeader").count()
-        if result_exist:
+        if result_exist > 0:
             await home_page.click("#searchResultsHeader #checkboxCol")
             await home_page.click(".pager .next")
 
         await home_page.click('#searchResults .menuPagerBar a.download')
-        
+        await home_page.wait_for_selector("#detailLevel")
+        await home_page.click("#detailLevel")
+        await home_page.click("text='Download Records'")
+
         print ('Congratulations!')
 
         await browser.close()
