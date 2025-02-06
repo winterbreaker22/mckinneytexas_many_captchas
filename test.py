@@ -140,12 +140,12 @@ async def main():
                 await home_page.click("#searchResultsHeader #checkboxCol")
                 await home_page.click(".pager .next")
 
-            await home_page.click('#searchResults .menuPagerBar a.download')
-            await home_page.wait_for_selector("#detailLevel")
-            await home_page.click("#detailLevel")
-            await home_page.click("text='Download Records'")
+        await home_page.click('#searchResults .menuPagerBar a.download')
+        await home_page.wait_for_selector("#detailDetail")
+        await home_page.click("#detailDetail")
+        await home_page.click("text='Download Records'")
 
-            print ('Congratulations!')
+        print ('Congratulations!')
 
         await browser.close()
 
