@@ -6,14 +6,16 @@ from twocaptcha import TwoCaptcha
 
 API_KEY = 'bb8ef87d36b4959711ed4d1c0ebcd930'
 solver = TwoCaptcha(API_KEY)
+print ("solver: ", solver)
 card_number = '29882001815412'
 
-def get_mt_captcha_token(site_key, page_url):    
+def get_captcha_token(site_key, page_url):    
     attempts = 0
     max_attempts = 20
 
     while attempts < max_attempts:
         result = solver.hcaptcha(sitekey=site_key, url=page_url)
+        print ("result: ", result)
         if not result['captchaId']:
             print ('Captcha unresolved')
             attempts += 1
@@ -108,7 +110,7 @@ async def main():
                 print("Captcha!!!")
                 print ("sitekey: ", site_key)
                 print("page url: ", home_page.url)
-                captcha_id = get_mt_captcha_token(site_key, home_page.url)
+                captcha_id = get_captcha_token(site_key, home_page.url)
                 if captcha_id:
                     print(f'CAPTCHA ID: {captcha_id}')
                     solution = get_captcha_solution(captcha_id)
