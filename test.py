@@ -16,41 +16,42 @@ card_number = '29882001815412'
 
 async def extract_request_key(page):
     try:
-        js_files = []  # List to store external JavaScript content
+        js_code = """
+        let requestKeys = [];
+        let bodyContent = document.body.innerHTML;  // Get the entire HTML content of the page
 
-        # Capture external JS files
-        async def handle_response(response):
-            if response.request.resource_type == "script":
-                js_content = await response.text()
-                js_files.append(js_content)
-                print(f"Captured JS file: {response.url}")
-                # Optionally, print out a snippet of the JS content for debugging
-                print(f"JS Content snippet: {js_content[:100]}...")
+        // Regex to capture 'requestKey' in the format requestKey: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+        let regex = /requestKey\\s*[:=]\\s*'(\\w{32})'/g;  // Match exactly a 32-character alphanumeric string
 
-        # Register the response event to capture all external JS files
-        page.on("response", handle_response)
+        // Find all matches for the requestKey pattern in the inline JavaScript
+        let matches;
+        while ((matches = regex.exec(bodyContent)) !== null) {
+            requestKeys.push(matches[1]);  // Push all requestKeys into the array
+        }
 
-        # Navigate to the page and wait for the network to idle (all resources loaded)
-        await page.goto(page.url)
-        await page.wait_for_load_state("networkidle")  # Ensure the page and resources are fully loaded
+        // Now search for any inline JavaScript scripts that might also contain the requestKey
+        let scriptTags = document.getElementsByTagName('script');  // Get all script tags on the page
 
-        # Also search in the inline scripts within the HTML body
-        body_content = await page.content()  # Get the full HTML content, including inline scripts
-        
-        # Regex to find all occurrences of requestKey in the scripts
-        request_keys = []
+        for (let script of scriptTags) {
+            if (script.innerHTML) {
+                // Check inline script content
+                let scriptMatches = regex.exec(script.innerHTML);
+                while (scriptMatches !== null) {
+                    requestKeys.push(scriptMatches[1]);  // Push the found requestKeys
+                    scriptMatches = regex.exec(script.innerHTML);
+                }
+            }
+        }
 
-        # Search inline JavaScript in the page content
-        inline_matches = re.findall(r"requestKey\s*[:=]\s*'(\\w{32})'", body_content)
-        request_keys.extend(inline_matches)
+        // Ensure that all requestKeys are unique
+        requestKeys = [...new Set(requestKeys)];  // Remove duplicates
 
-        # Search external JavaScript files captured in the js_files
-        for js_content in js_files:
-            external_matches = re.findall(r"requestKey\s*[:=]\s*'(\\w{32})'", js_content)
-            request_keys.extend(external_matches)
+        // Return all found requestKeys
+        requestKeys;
+        """
 
-        # Remove duplicate requestKeys (if any)
-        request_keys = list(set(request_keys))
+        # Run the JS code on the page to extract requestKey values
+        request_keys = await page.evaluate(js_code)
 
         if request_keys:
             print(f"Found requestKeys: {request_keys}")
