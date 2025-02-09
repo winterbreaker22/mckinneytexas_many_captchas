@@ -16,29 +16,23 @@ card_number = '29882001815412'
 
 async def extract_request_key(page):
     try:
-        js_files = []
-        url = page.url
-        temp_key = url.split('/')[-1] 
-        print(f"Extracted temp_key: {temp_key}")
-
-        async def handle_response(response):
-            if response.request.resource_type == "script" and temp_key in response.url:
-                js_content = await response.text()
-                js_files.append(js_content)
-                print(f"Captured JS file: {response.url}")
-                print(f"JS Content: {js_content[:500]}...")  
-
-        page.on("response", handle_response)
-
-        await page.goto(page.url)  
+        await page.goto(page.url)
         await page.wait_for_load_state("networkidle") 
 
-        request_key = None
-        for js_content in js_files:
-            match = re.search(r"requestKey\s*[:=]\s*'([a-f0-9]{32})'", js_content)
-            if match:
-                request_key = match.group(1)
-                break
+        js_code = """
+        let requestKey = null;
+        let bodyContent = document.body.innerHTML;  // Get the entire HTML content of the page
+        let regex = /requestKey\s*[:=]\s*'(\\w{32})'/;  // Pattern to match the requestKey
+        
+        // Search for the key in the content
+        let match = bodyContent.match(regex);
+        if (match) {
+            requestKey = match[1];  // Extract the requestKey
+        }
+        requestKey;
+        """
+        
+        request_key = await page.evaluate(js_code)
 
         if request_key:
             print(f"Found requestKey: {request_key}")
