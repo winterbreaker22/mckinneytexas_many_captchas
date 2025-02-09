@@ -24,6 +24,7 @@ async def extract_request_key(page):
         js_code = """
         let requestKeys = [];
         let bodyContent = document.body.innerHTML;  // Get the entire HTML content of the page
+        console.log("bodyContent: ", bodyContent);
         
         // Regex to capture 'requestKey' in the format var ajaxData = { requestKey: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }
         let regex = /requestKey\s*[:=]\s*'(\\w{32})'/g;  // Match exactly a 32-character alphanumeric string
