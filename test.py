@@ -18,12 +18,15 @@ async def extract_request_key(page):
     try:
         js_files = []
         async def handle_response(response):
-            if response.request.resource_type == "script" and response.ok:
+            print(f"Response URL: {response.url}")  
+            if response.request.resource_type == "script":
                 js_content = await response.text()
                 js_files.append(js_content)
                 print(f"Captured JS file: {response.url}")
 
         page.on("response", handle_response)
+
+        await page.goto(page.url)
         await page.wait_for_load_state("networkidle")
 
         request_key = None
