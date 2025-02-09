@@ -14,26 +14,24 @@ print ("solver: ", solver)
 card_number = '29882001815412'
 
 
-import re
-
 async def extract_request_key(page):
     try:
         # Ensure the page is loaded
         await page.goto(page.url)
         await page.wait_for_load_state("networkidle")  # Wait for the page to load completely
 
-        # Example of how the key format might differ: assuming it could be alphanumeric, or any specific pattern
+        # JavaScript code to extract the requestKey, specifically looking for 'requestKey' in the ajaxData object
         js_code = """
         let requestKeys = [];
         let bodyContent = document.body.innerHTML;  // Get the entire HTML content of the page
         
-        // Modify this regex to match the specific key format you are looking for
-        let regex = /requestKey\s*[:=]\s*'(\\w{32,})'/g;  // This will now capture any alphanumeric string with 32 or more characters
+        // Regex to capture 'requestKey' in the format var ajaxData = { requestKey: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }
+        let regex = /requestKey\s*[:=]\s*'(\\w{32})'/g;  // Match exactly a 32-character alphanumeric string
         
         // Find all matches for the requestKey pattern
         let matches;
         while ((matches = regex.exec(bodyContent)) !== null) {
-            requestKeys.push(matches[1]);  // Push all found requestKeys into the array
+            requestKeys.push(matches[1]);  // Push all requestKeys into the array
         }
         requestKeys;
         """
@@ -51,7 +49,6 @@ async def extract_request_key(page):
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
-
 
 
 def get_captcha_token(site_key, page_url):    
