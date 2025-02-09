@@ -14,7 +14,7 @@ print ("solver: ", solver)
 card_number = '29882001815412'
 
 
-async def extract_all_request_keys(page):
+async def extract_request_key(page):
     try:
         # Ensure the page is loaded
         await page.goto(page.url)
