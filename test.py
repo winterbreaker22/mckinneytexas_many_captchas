@@ -13,47 +13,31 @@ solver = TwoCaptcha(API_KEY)
 print ("solver: ", solver)
 card_number = '29882001815412'
 
-async def extract_request_key(page: Page):
-    """
-    Extracts the 'requestKey' from JavaScript files loaded on the page.
-    Args:
-        page (Page): A Playwright Page instance.
-    Returns:
-        str: The extracted requestKey, or None if not found.
-    """
+async def extract_request_key_from_js_files(page: Page):
     try:
-        # Store JavaScript files in a list
         js_files = []
-
-        # Intercept and capture JavaScript requests
         async def handle_request(request):
             if request.resource_type == "script":
                 js_files.append(request.url)
 
-        # Attach the request handler to the page
         page.on("request", handle_request)
-
-        # Wait for the page to load
         await page.wait_for_load_state("networkidle")
 
-        # Fetch the JavaScript content and search for the key
         request_key = None
         for js_url in js_files:
             try:
                 response = await page.request.get(js_url)
                 js_content = await response.text()
-                
-                # Search for the requestKey using a regex pattern
+                print ("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                print(js_content)
                 match = re.search(r"requestKey:\s*'([a-f0-9]{32})'", js_content)
                 if match:
                     request_key = match.group(1)
-                    break  # Stop after finding the first match
+                    break
             except Exception as e:
                 print(f"Failed to fetch {js_url}: {e}")
 
-        # Detach the request handler
-        page.off("request", handle_request)
-
+        page.remove_listener("request", handle_request)
         return request_key
     except Exception as e:
         print(f"An error occurred: {e}")
