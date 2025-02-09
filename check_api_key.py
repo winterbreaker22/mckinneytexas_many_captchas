@@ -1,6 +1,6 @@
 import requests
 
-API_KEY = 'bb8ef87d36b4959711ed4d1c0ebcd930'
+API_KEY = '22baccc6f0d5aa915d61d378dc899c30'
 
 def check_balance(api_key):
     url = f'http://2captcha.com/res.php?key={api_key}&action=getbalance'
