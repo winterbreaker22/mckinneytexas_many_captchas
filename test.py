@@ -16,6 +16,8 @@ card_number = '29882001815412'
 
 async def extract_request_key(page):
     try:
+        await page.wait_for_load_state("networkidle")
+
         js_code = """
         let requestKeys = [];
         let bodyContent = document.body.innerHTML;  // Get the entire HTML content of the page
@@ -50,7 +52,6 @@ async def extract_request_key(page):
         requestKeys;
         """
 
-        # Run the JS code on the page to extract requestKey values
         request_keys = await page.evaluate(js_code)
 
         if request_keys:
@@ -58,7 +59,7 @@ async def extract_request_key(page):
         else:
             print("No requestKeys found.")
 
-        return request_keys  # Return the list of all found requestKeys
+        return request_keys
 
     except Exception as e:
         print(f"An error occurred: {e}")
