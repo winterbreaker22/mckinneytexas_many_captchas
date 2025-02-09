@@ -16,40 +16,35 @@ card_number = '29882001815412'
 
 async def extract_request_key(page):
     try:
+        # Extract the temp_key from the URL
         url = page.url
-        temp_key = url.split('/')[-1] 
-        
+        temp_key = url.split('/')[-1]  # Extract the temp_key from the URL
         print(f"Extracted temp_key: {temp_key}")
 
-        target_file_path = f"/{temp_key}/www.referenceusa.com/UsBusiness/Result/{temp_key}"
+        # Construct the target file URL path
+        target_js_url = f"{page.url.split('/UsBusiness')[0]}/UsBusiness/Result/{temp_key}/{temp_key}"
 
-        js_files = []
+        print(f"Target JS file URL: {target_js_url}")
 
-        async def handle_response(response):
-            if response.request.resource_type == "script":
-                js_content = await response.text()
-                js_files.append((response.url, js_content))
-                print(f"Captured JS file: {response.url}")
+        # Fetch the JavaScript file directly
+        response = await page.goto(target_js_url)
+        
+        if response.status == 200:
+            js_content = await response.text()
+            print(f"JS Content: {js_content[:500]}...")  # Log the first 500 characters of JS content for review
 
-        page.on("response", handle_response)
-
-        await page.goto(page.url) 
-        await page.wait_for_load_state("networkidle")
-
-        request_key = None
-        for js_url, js_content in js_files:
-            if target_file_path in js_url:
-                match = re.search(r"requestKey\s*[:=]\s*'([a-f0-9]{32})'", js_content)
-                if match:
-                    request_key = match.group(1)
-                    break
-
-        if request_key:
-            print(f"Found requestKey: {request_key}")
+            # Search for the requestKey in the content of the JS file
+            match = re.search(r"requestKey\s*[:=]\s*'([a-f0-9]{32})'", js_content)
+            if match:
+                request_key = match.group(1)
+                print(f"Found requestKey: {request_key}")
+                return request_key
+            else:
+                print("requestKey not found in the JavaScript file.")
+                return None
         else:
-            print("requestKey not found.")
-
-        return request_key
+            print(f"Failed to load the JavaScript file. Status code: {response.status}")
+            return None
 
     except Exception as e:
         print(f"An error occurred: {e}")
