@@ -13,31 +13,25 @@ solver = TwoCaptcha(API_KEY)
 print ("solver: ", solver)
 card_number = '29882001815412'
 
-async def extract_request_key(page: Page):
+async def extract_request_key(page):
     try:
         js_files = []
-        async def handle_request(request):
-            if request.resource_type == "script":
-                js_files.append(request.url)
+        async def handle_response(response):
+            if response.request.resource_type == "script" and response.ok:
+                js_content = await response.text()
+                js_files.append(js_content)
+        print("js files: ", js_files)
 
-        page.on("request", handle_request)
-        await page.wait_for_load_state("networkidle")
+        page.on("response", handle_response)
+        await page.goto("http://www.referenceusa.com/UsBusiness/Result/dbe70498e16f45bdbf1f0fb09cd2366c", wait_until="networkidle")
 
         request_key = None
-        for js_url in js_files:
-            try:
-                response = await page.request.get(js_url)
-                js_content = await response.text()
-                print ("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-                print(js_content)
-                match = re.search(r"requestKey:\s*'([a-f0-9]{32})'", js_content)
-                if match:
-                    request_key = match.group(1)
-                    break
-            except Exception as e:
-                print(f"Failed to fetch {js_url}: {e}")
+        for js_content in js_files:
+            match = re.search(r"requestKey:\s*'([a-f0-9]{32})'", js_content)
+            if match:
+                request_key = match.group(1)
+                break
 
-        page.remove_listener("request", handle_request)
         return request_key
     except Exception as e:
         print(f"An error occurred: {e}")
