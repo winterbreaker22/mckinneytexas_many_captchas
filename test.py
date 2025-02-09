@@ -21,11 +21,11 @@ async def extract_request_key(page):
             if response.request.resource_type == "script" and response.ok:
                 js_content = await response.text()
                 js_files.append(js_content)
+                print(f"Captured JS file: {response.url}")
 
         page.on("response", handle_response)
-
         await page.wait_for_load_state("networkidle")
-        print ("js files: ", js_files)
+
         request_key = None
         for js_content in js_files:
             match = re.search(r"requestKey:\s*'([a-f0-9]{32})'", js_content)
@@ -37,6 +37,7 @@ async def extract_request_key(page):
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
+
 
 def get_captcha_token(site_key, page_url):    
     attempts = 0
