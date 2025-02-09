@@ -13,6 +13,7 @@ solver = TwoCaptcha(API_KEY)
 print ("solver: ", solver)
 card_number = '29882001815412'
 
+
 async def extract_request_key(page):
     try:
         js_files = []
@@ -20,11 +21,11 @@ async def extract_request_key(page):
             if response.request.resource_type == "script" and response.ok:
                 js_content = await response.text()
                 js_files.append(js_content)
-        print("js files: ", js_files)
 
         page.on("response", handle_response)
-        await page.goto("http://www.referenceusa.com/UsBusiness/Result/dbe70498e16f45bdbf1f0fb09cd2366c", wait_until="networkidle")
 
+        await page.wait_for_load_state("networkidle")
+        print ("js files: ", js_files)
         request_key = None
         for js_content in js_files:
             match = re.search(r"requestKey:\s*'([a-f0-9]{32})'", js_content)
