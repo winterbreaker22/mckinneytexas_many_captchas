@@ -14,21 +14,18 @@ card_number = '29882001815412'
 def extract_request_key(url):
     try:
         response = requests.get(url)
-        response.raise_for_status() 
-        
-        soup = BeautifulSoup(response.text, 'html.parser')        
-        script_tags = soup.find_all('script')        
+        response.raise_for_status()
+        html_content = response.text
+
         requestkey_pattern = r"data\.requestkey\s*=\s*['\"](.*?)['\"]"
-        
-        for script in script_tags:
-            if script.string:  
-                match = re.search(requestkey_pattern, script.string)
-                if match:
-                    return match.group(1)         
-        return None  
-    
+        match = re.search(requestkey_pattern, html_content)
+
+        if match:
+            return match.group(1) 
+        else:
+            return None 
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error fetching or parsing the URL: {e}")
         return None
 
 
