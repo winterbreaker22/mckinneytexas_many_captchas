@@ -160,7 +160,7 @@ async def main():
             if captcha_exist > 0:
                 print("Captcha!!!")
                 page_url = home_page.url
-                site_key = extract_request_key(home_page)
+                site_key = await extract_request_key(home_page)
                 print ("sitekey: ", site_key)
                 print("page url: ", page_url)
                 captcha_id = get_captcha_token(site_key, page_url)
