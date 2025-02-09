@@ -1,6 +1,8 @@
 import asyncio
 import requests
 import time
+import re
+from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 from twocaptcha import TwoCaptcha
 
@@ -8,6 +10,27 @@ API_KEY = 'bb8ef87d36b4959711ed4d1c0ebcd930'
 solver = TwoCaptcha(API_KEY)
 print ("solver: ", solver)
 card_number = '29882001815412'
+
+def extract_request_key(url):
+    try:
+        response = requests.get(url)
+        response.raise_for_status() 
+        
+        soup = BeautifulSoup(response.text, 'html.parser')        
+        script_tags = soup.find_all('script')        
+        requestkey_pattern = r"data\.requestkey\s*=\s*['\"](.*?)['\"]"
+        
+        for script in script_tags:
+            if script.string:  
+                match = re.search(requestkey_pattern, script.string)
+                if match:
+                    return match.group(1)         
+        return None  
+    
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+
 
 def get_captcha_token(site_key, page_url):    
     attempts = 0
@@ -22,6 +45,7 @@ def get_captcha_token(site_key, page_url):
         else: 
             captcha_id = result['captchaId']
             return captcha_id
+
 
 def get_captcha_solution(captcha_id):
     url = f'http://2captcha.com/res.php?key={API_KEY}&action=get&id={captcha_id}&json=1'
@@ -52,8 +76,8 @@ def get_captcha_solution(captcha_id):
     print('Max attempts reached. Captcha solving failed.')
     return None
 
+
 async def main():
-    site_key = '2942779……c24-acf7-29d4b80d2106'
     login_url = f'https://www.mckinneytexas.org/116/Library'
 
     async with async_playwright() as p:
@@ -108,20 +132,20 @@ async def main():
             captcha_exist = await home_page.locator("#hcaptcha").count()
             if captcha_exist > 0:
                 print("Captcha!!!")
+                page_url = home_page.url
+                site_key = extract_request_key(page_url)
                 print ("sitekey: ", site_key)
-                print("page url: ", home_page.url)
-                captcha_id = get_captcha_token(site_key, home_page.url)
+                print("page url: ", page_url)
+                captcha_id = get_captcha_token(site_key, page_url)
                 if captcha_id:
                     print(f'CAPTCHA ID: {captcha_id}')
                     solution = get_captcha_solution(captcha_id)
                     if solution:
                         print(f'Solved CAPTCHA: {solution}')
 
-                        # Inject the MTCaptcha token into the form and submit 
                         await home_page.fill("#g-recaptcha-response-1cze57gr6ofv", solution)
                         print('Captcha solution injected successfully.')
 
-                        # Wait for navigation after solving CAPTCHA
                         await home_page.wait_for_load_state('networkidle')
                         print ('arrived!!!')
                         await home_page.wait_for_timeout(1000)
