@@ -12,12 +12,21 @@ solver = TwoCaptcha(API_KEY)
 print ("solver: ", solver)
 card_number = '29882001815412'
 
-def extract_request_key(url):
-    parsed_url = urlparse(url)
-    path = parsed_url.path
-    last_segment = path.split('/')[-1]
-    return last_segment
-
+async def extract_request_key(page):
+    try:
+        scripts = await page.locator('script').all()
+        requestkey_pattern = r"requestKey\s*:\s*['\"](.*?)['\"]"
+        
+        for script in scripts:
+            script_content = await script.inner_html()
+            if script_content:
+                match = re.search(requestkey_pattern, script_content)
+                if match:
+                    return match.group(1) 
+        return None
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
 
 def get_captcha_token(site_key, page_url):    
     attempts = 0
@@ -120,7 +129,7 @@ async def main():
             if captcha_exist > 0:
                 print("Captcha!!!")
                 page_url = home_page.url
-                site_key = extract_request_key(page_url)
+                site_key = extract_request_key(home_page)
                 print ("sitekey: ", site_key)
                 print("page url: ", page_url)
                 captcha_id = get_captcha_token(site_key, page_url)
