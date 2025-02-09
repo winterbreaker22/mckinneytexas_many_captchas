@@ -14,32 +14,35 @@ print ("solver: ", solver)
 card_number = '29882001815412'
 
 
-async def extract_request_key(page):
+async def extract_all_request_keys(page):
     try:
+        # Ensure the page is loaded
         await page.goto(page.url)
-        await page.wait_for_load_state("networkidle") 
+        await page.wait_for_load_state("networkidle")  # Wait for the page to load completely
 
+        # Evaluate the page content to find all requestKeys
         js_code = """
-        let requestKey = null;
+        let requestKeys = [];
         let bodyContent = document.body.innerHTML;  // Get the entire HTML content of the page
-        let regex = /requestKey\s*[:=]\s*'(\\w{32})'/;  // Pattern to match the requestKey
+        let regex = /requestKey\s*[:=]\s*'(\\w{32})'/g;  // Pattern to match all requestKey occurrences
         
-        // Search for the key in the content
-        let match = bodyContent.match(regex);
-        if (match) {
-            requestKey = match[1];  // Extract the requestKey
+        // Find all matches for the requestKey pattern
+        let matches;
+        while ((matches = regex.exec(bodyContent)) !== null) {
+            requestKeys.push(matches[1]);  // Push all requestKeys into the array
         }
-        requestKey;
+        requestKeys;
         """
         
-        request_key = await page.evaluate(js_code)
+        # Execute the JavaScript code on the page to search for all requestKey values
+        request_keys = await page.evaluate(js_code)
 
-        if request_key:
-            print(f"Found requestKey: {request_key}")
+        if request_keys:
+            print(f"Found requestKeys: {request_keys}")
         else:
-            print("requestKey not found.")
+            print("No requestKeys found.")
 
-        return request_key
+        return request_keys
 
     except Exception as e:
         print(f"An error occurred: {e}")
