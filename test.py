@@ -15,12 +15,11 @@ card_number = '29882001815412'
 
 async def extract_request_key(page: Page):
     """
-    Captures JavaScript files from an existing Playwright page instance and extracts their content.
+    Extracts the 'requestKey' from JavaScript files loaded on the page.
     Args:
         page (Page): A Playwright Page instance.
-
     Returns:
-        dict: A dictionary where keys are JavaScript file URLs and values are their contents.
+        str: The extracted requestKey, or None if not found.
     """
     try:
         # Store JavaScript files in a list
@@ -34,25 +33,31 @@ async def extract_request_key(page: Page):
         # Attach the request handler to the page
         page.on("request", handle_request)
 
-        # Wait for the page to load (adjust time if necessary)
+        # Wait for the page to load
         await page.wait_for_load_state("networkidle")
 
-        # Fetch the JavaScript content
-        js_content = {}
+        # Fetch the JavaScript content and search for the key
+        request_key = None
         for js_url in js_files:
             try:
                 response = await page.request.get(js_url)
-                js_content[js_url] = await response.text()
+                js_content = await response.text()
+                
+                # Search for the requestKey using a regex pattern
+                match = re.search(r"requestKey:\s*'([a-f0-9]{32})'", js_content)
+                if match:
+                    request_key = match.group(1)
+                    break  # Stop after finding the first match
             except Exception as e:
                 print(f"Failed to fetch {js_url}: {e}")
 
-        # Detach the request handler after extraction
+        # Detach the request handler
         page.off("request", handle_request)
 
-        return js_content
+        return request_key
     except Exception as e:
         print(f"An error occurred: {e}")
-        return {}
+        return None
 
 def get_captcha_token(site_key, page_url):    
     attempts = 0
