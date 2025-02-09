@@ -20,13 +20,12 @@ async def extract_request_key(page):
         await page.goto(page.url)
         await page.wait_for_load_state("networkidle")  # Wait for the page to load completely
 
-        # JavaScript code to extract the requestKey, specifically looking for 'requestKey' in the ajaxData object
+        # JavaScript code to extract all requestKeys
         js_code = """
         let requestKeys = [];
         let bodyContent = document.body.innerHTML;  // Get the entire HTML content of the page
-        console.log("bodyContent: ", bodyContent);
         
-        // Regex to capture 'requestKey' in the format var ajaxData = { requestKey: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' }
+        // Regex to capture 'requestKey' in the format requestKey: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
         let regex = /requestKey\s*[:=]\s*'(\\w{32})'/g;  // Match exactly a 32-character alphanumeric string
         
         // Find all matches for the requestKey pattern
@@ -45,7 +44,7 @@ async def extract_request_key(page):
         else:
             print("No requestKeys found.")
 
-        return request_keys
+        return request_keys  # Return the list of all requestKeys
 
     except Exception as e:
         print(f"An error occurred: {e}")
