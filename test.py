@@ -5,6 +5,7 @@ import re
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 from twocaptcha import TwoCaptcha
+from urllib.parse import urlparse
 
 API_KEY = '22baccc6f0d5aa915d61d378dc899c30'
 solver = TwoCaptcha(API_KEY)
@@ -12,21 +13,10 @@ print ("solver: ", solver)
 card_number = '29882001815412'
 
 def extract_request_key(url):
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        html_content = response.text
-
-        requestkey_pattern = r"data\.requestkey\s*=\s*['\"](.*?)['\"]"
-        match = re.search(requestkey_pattern, html_content)
-
-        if match:
-            return match.group(1) 
-        else:
-            return None 
-    except Exception as e:
-        print(f"Error fetching or parsing the URL: {e}")
-        return None
+    parsed_url = urlparse(url)
+    path = parsed_url.path
+    last_segment = path.split('/')[-1]
+    return last_segment
 
 
 def get_captcha_token(site_key, page_url):    
