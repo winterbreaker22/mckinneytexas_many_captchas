@@ -16,37 +16,33 @@ card_number = '29882001815412'
 
 async def extract_request_key(page):
     try:
-        await page.wait_for_load_state("networkidle")
-
         js_code = """
         let requestKeys = [];
-        let bodyContent = document.body.innerHTML;  // Get the entire HTML content of the page
+        let bodyContent = document.body.innerHTML;
 
         // Regex to capture 'requestKey' in the format requestKey: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
-        let regex = /requestKey\\s*[:=]\\s*'(\\w{32})'/g;  // Match exactly a 32-character alphanumeric string
+        let regex = /requestKey\\s*[:=]\\s*'(\\w{32})'/g;
 
-        // Find all matches for the requestKey pattern in the inline JavaScript
+        // Find all matches in the body content
         let matches;
         while ((matches = regex.exec(bodyContent)) !== null) {
-            requestKeys.push(matches[1]);  // Push all requestKeys into the array
+            requestKeys.push(matches[1]);
         }
 
-        // Now search for any inline JavaScript scripts that might also contain the requestKey
-        let scriptTags = document.getElementsByTagName('script');  // Get all script tags on the page
+        // Now search inline JavaScript code inside <script> tags
+        let scriptTags = document.getElementsByTagName('script');
 
         for (let script of scriptTags) {
             if (script.innerHTML) {
-                // Check inline script content
-                let scriptMatches = regex.exec(script.innerHTML);
-                while (scriptMatches !== null) {
-                    requestKeys.push(scriptMatches[1]);  // Push the found requestKeys
-                    scriptMatches = regex.exec(script.innerHTML);
+                let scriptMatches;
+                while ((scriptMatches = regex.exec(script.innerHTML)) !== null) {
+                    requestKeys.push(scriptMatches[1]);
                 }
             }
         }
 
-        // Ensure that all requestKeys are unique
-        requestKeys = [...new Set(requestKeys)];  // Remove duplicates
+        // Ensure unique keys
+        requestKeys = [...new Set(requestKeys)];
 
         // Return all found requestKeys
         requestKeys;
@@ -54,12 +50,23 @@ async def extract_request_key(page):
 
         request_keys = await page.evaluate(js_code)
 
-        if request_keys:
-            print(f"Found requestKeys: {request_keys}")
-        else:
+        if not request_keys:
             print("No requestKeys found.")
+            return None
 
-        return request_keys
+        print(f"All found requestKeys: {request_keys}")
+
+        url = page.url
+        temp_key = url.split("/")[-1]  
+
+        filtered_keys = [key for key in request_keys if key != temp_key]
+
+        if filtered_keys:
+            print(f"Filtered requestKeys (excluding temp_key): {filtered_keys}")
+        else:
+            print("No valid requestKeys found after filtering.")
+
+        return filtered_keys 
 
     except Exception as e:
         print(f"An error occurred: {e}")
