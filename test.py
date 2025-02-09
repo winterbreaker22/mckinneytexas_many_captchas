@@ -18,25 +18,31 @@ async def extract_request_key(page):
     try:
         js_files = []
         async def handle_response(response):
-            print(f"Response URL: {response.url}")  
             if response.request.resource_type == "script":
                 js_content = await response.text()
                 js_files.append(js_content)
                 print(f"Captured JS file: {response.url}")
+                print(f"JS Content: {js_content[:500]}...")  
 
         page.on("response", handle_response)
 
-        await page.goto(page.url)
+        await page.goto(page.url)  
         await page.wait_for_load_state("networkidle")
 
         request_key = None
         for js_content in js_files:
-            match = re.search(r"requestKey:\s*'([a-f0-9]{32})'", js_content)
+            match = re.search(r"requestKey\s*[:=]\s*'([a-f0-9]{32})'", js_content)
             if match:
                 request_key = match.group(1)
                 break
 
+        if request_key:
+            print(f"Found requestKey: {request_key}")
+        else:
+            print("requestKey not found.")
+
         return request_key
+
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
