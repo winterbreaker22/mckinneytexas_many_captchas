@@ -17,8 +17,12 @@ card_number = '29882001815412'
 async def extract_request_key(page):
     try:
         js_files = []
+        url = page.url
+        temp_key = url.split('/')[-1] 
+        print(f"Extracted temp_key: {temp_key}")
+
         async def handle_response(response):
-            if response.request.resource_type == "script":
+            if response.request.resource_type == "script" and temp_key in response.url:
                 js_content = await response.text()
                 js_files.append(js_content)
                 print(f"Captured JS file: {response.url}")
@@ -27,7 +31,7 @@ async def extract_request_key(page):
         page.on("response", handle_response)
 
         await page.goto(page.url)  
-        await page.wait_for_load_state("networkidle")
+        await page.wait_for_load_state("networkidle") 
 
         request_key = None
         for js_content in js_files:
