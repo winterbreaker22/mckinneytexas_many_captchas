@@ -13,7 +13,7 @@ solver = TwoCaptcha(API_KEY)
 print ("solver: ", solver)
 card_number = '29882001815412'
 
-async def extract_request_key_from_js_files(page: Page):
+async def extract_request_key(page: Page):
     try:
         js_files = []
         async def handle_request(request):
