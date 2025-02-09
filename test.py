@@ -4,6 +4,7 @@ import time
 import re
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
+from playwright.async_api import Page
 from twocaptcha import TwoCaptcha
 from urllib.parse import urlparse
 
@@ -12,21 +13,46 @@ solver = TwoCaptcha(API_KEY)
 print ("solver: ", solver)
 card_number = '29882001815412'
 
-async def extract_request_key(page):
+async def extract_request_key(page: Page):
+    """
+    Captures JavaScript files from an existing Playwright page instance and extracts their content.
+    Args:
+        page (Page): A Playwright Page instance.
+
+    Returns:
+        dict: A dictionary where keys are JavaScript file URLs and values are their contents.
+    """
     try:
-        scripts = await page.locator('script').all()
-        requestkey_pattern = r"requestKey\s*:\s*['\"](.*?)['\"]"
-        
-        for script in scripts:
-            script_content = await script.inner_html()
-            if script_content:
-                match = re.search(requestkey_pattern, script_content)
-                if match:
-                    return match.group(1) 
-        return None
+        # Store JavaScript files in a list
+        js_files = []
+
+        # Intercept and capture JavaScript requests
+        async def handle_request(request):
+            if request.resource_type == "script":
+                js_files.append(request.url)
+
+        # Attach the request handler to the page
+        page.on("request", handle_request)
+
+        # Wait for the page to load (adjust time if necessary)
+        await page.wait_for_load_state("networkidle")
+
+        # Fetch the JavaScript content
+        js_content = {}
+        for js_url in js_files:
+            try:
+                response = await page.request.get(js_url)
+                js_content[js_url] = await response.text()
+            except Exception as e:
+                print(f"Failed to fetch {js_url}: {e}")
+
+        # Detach the request handler after extraction
+        page.off("request", handle_request)
+
+        return js_content
     except Exception as e:
         print(f"An error occurred: {e}")
-        return None
+        return {}
 
 def get_captcha_token(site_key, page_url):    
     attempts = 0
