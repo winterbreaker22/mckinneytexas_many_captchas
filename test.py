@@ -138,9 +138,10 @@ async def main():
                 token = await extract_and_solve_hcaptcha(home_page, API_KEY)
                 print(f"token: {token}")
                 
-                textarea = await home_page.query_selector("#hcaptcha textarea:last-of-type")
-                await textarea.fill(token)
-                await asyncio.sleep(2)
+                textarea = await home_page.query_selector("textarea[name='h-captcha-response']")
+                if textarea:
+                    await textarea.fill(token)
+                    await asyncio.sleep(2)
 
             result_exist = await home_page.locator("#searchResultsHeader").count()
             if result_exist > 0:
