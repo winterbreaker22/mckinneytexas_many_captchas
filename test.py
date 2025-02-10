@@ -117,8 +117,8 @@ async def main():
 
         await home_page.mouse.click(150, 150)
 
-        await home_page.wait_for_selector("text='U.S. Businesses'")
-        await home_page.click("text='U.S. Businesses'")
+        await home_page.wait_for_selector("#UsBusiness")
+        await home_page.click("#UsBusiness")
         
         await home_page.wait_for_selector("text='Advanced Search'")
         await home_page.click("text='Advanced Search'")
