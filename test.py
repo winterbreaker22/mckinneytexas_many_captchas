@@ -1,12 +1,9 @@
 import asyncio
 import requests
-import time
 import re
-from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 from playwright.async_api import Page
 from twocaptcha import TwoCaptcha
-from urllib.parse import urlparse
 
 API_KEY = '22baccc6f0d5aa915d61d378dc899c30'
 solver = TwoCaptcha(API_KEY)
