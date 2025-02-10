@@ -115,6 +115,7 @@ async def main():
         await home_page.fill("#matchcode", card_number)
         await home_page.click("#logOn .buttons .originButton > span > span")
 
+        await asyncio.sleep(1)
         await home_page.mouse.click(150, 150)
 
         await home_page.wait_for_selector("#UsBusiness")
