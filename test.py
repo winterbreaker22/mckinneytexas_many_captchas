@@ -143,7 +143,22 @@ async def main():
                 print(f"token: {token}")
                 
                 await home_page.evaluate(
-                    'captcha => document.getElementsByName("h-captcha-response")[0].innerHTML = captcha;',
+                    '''
+                    (captcha) => {
+                        const gRecaptcha = document.getElementsByName("g-recaptcha-response")[0];
+                        const hCaptcha = document.getElementsByName("h-captcha-response")[0];
+                        if (gRecaptcha) {
+                            gRecaptcha.innerHTML = captcha;
+                            gRecaptcha.dispatchEvent(new Event('input', { bubbles: true })); // Trigger input event
+                            gRecaptcha.dispatchEvent(new Event('change', { bubbles: true })); // Trigger change event
+                        }
+                        if (hCaptcha) {
+                            hCaptcha.innerHTML = captcha;
+                            hCaptcha.dispatchEvent(new Event('input', { bubbles: true })); // Trigger input event
+                            hCaptcha.dispatchEvent(new Event('change', { bubbles: true })); // Trigger change event
+                        }
+                    }
+                    ''',
                     token,
                 )
                 await asyncio.sleep(1)
