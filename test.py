@@ -138,11 +138,14 @@ async def main():
                 token = await extract_and_solve_hcaptcha(home_page, API_KEY)
                 print(f"token: {token}")
                 
-                await home_page.wait_for_selector("textarea[name='h-captcha-response']", state="visible")
-                textarea = await home_page.query_selector("textarea[name='h-captcha-response']")
-                if textarea:
-                    await textarea.fill(token)
-                    await asyncio.sleep(2)
+                # Inject JavaScript to override the CSS and make the textarea visible
+                await home_page.evaluate("""
+                    let textarea = document.querySelector("textarea[name='h-captcha-response']");
+                    if (textarea) {
+                        textarea.style.visibility = 'visible';  
+                        textarea.value = '{token}'; 
+                    }
+                """)
 
             result_exist = await home_page.locator("#searchResultsHeader").count()
             if result_exist > 0:
