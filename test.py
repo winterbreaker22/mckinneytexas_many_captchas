@@ -14,15 +14,36 @@ print ("solver: ", solver)
 card_number = '29882001815412'
 
 
-def extract_and_solve_hcaptcha(page: Page, api_key: str):
+def send_captcha_request(api_key: str, sitekey: str, site_url: str):
+    captcha_request_payload = {
+        "key": api_key,  
+        "method": "hcaptcha", 
+        "sitekey": sitekey,  
+        "pageurl": site_url, 
+        "json": 1  
+    }
+    response = requests.post("http://2captcha.com/in.php", data=captcha_request_payload)
+    return response.json()
+
+def get_captcha_solution(api_key: str, captcha_id: str):
+    solution_payload = {
+        "key": api_key,
+        "action": "get",
+        "id": captcha_id,
+        "json": 1
+    }
+    response = requests.get("http://2captcha.com/res.php", params=solution_payload)
+    return response.json()
+
+async def extract_and_solve_hcaptcha(page: Page, api_key: str):
     try:
-        page.wait_for_load_state("networkidle")
+        await page.wait_for_load_state("networkidle")
         
-        iframe_elements = page.query_selector_all("iframe[src*='hcaptcha.com']")
+        iframe_elements = await page.query_selector_all("iframe[src*='hcaptcha.com']")
         sitekey = None
 
         for iframe in iframe_elements:
-            iframe_src = iframe.get_attribute("src")
+            iframe_src = await iframe.get_attribute("src")
             if iframe_src:
                 match = re.search(r"sitekey=([a-f0-9\-]{36})", iframe_src)
                 if match:
@@ -35,18 +56,8 @@ def extract_and_solve_hcaptcha(page: Page, api_key: str):
             return None
 
         site_url = page.url
-        print(f"Site Url: {site_url}")
 
-        captcha_request_payload = {
-            "key": api_key,  
-            "method": "hcaptcha", 
-            "sitekey": sitekey,  
-            "pageurl": site_url,  
-            "json": 1  
-        }
-
-        captcha_request_response = requests.post("http://2captcha.com/in.php", data=captcha_request_payload)
-        captcha_request_result = captcha_request_response.json()
+        captcha_request_result = await asyncio.to_thread(send_captcha_request, api_key, sitekey, site_url)
 
         if captcha_request_result.get("status") != 1:
             print(f"Error sending captcha to 2Captcha: {captcha_request_result}")
@@ -56,22 +67,14 @@ def extract_and_solve_hcaptcha(page: Page, api_key: str):
         print(f"Captcha submitted. ID: {captcha_id}")
 
         while True:
-            solution_payload = {
-                "key": api_key,
-                "action": "get",
-                "id": captcha_id,
-                "json": 1
-            }
-
-            solution_response = requests.get("http://2captcha.com/res.php", params=solution_payload)
-            solution_result = solution_response.json()
+            solution_result = await asyncio.to_thread(get_captcha_solution, api_key, captcha_id)
 
             if solution_result.get("status") == 1:
                 captcha_solution = solution_result.get("request")
                 print(f"Captcha solved: {captcha_solution}")
                 return captcha_solution
             elif solution_result.get("request") == "CAPCHA_NOT_READY":
-                time.sleep(5)  
+                await asyncio.sleep(5) 
             else:
                 print(f"Error solving captcha: {solution_result}")
                 return None
