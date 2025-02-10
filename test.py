@@ -145,6 +145,8 @@ async def main():
                 visible_textarea = home_page.locator("textarea[name='h-captcha-response']:visible")
                 print (f"visible text area: {visible_textarea}")
                 if await visible_textarea.count() > 0:
+                    print ("exist!!!!!")
+                    print (f"1st element: {visible_textarea[0]}")
                     await visible_textarea[0].fill(token)
 
             result_exist = await home_page.locator("#searchResultsHeader").count()
