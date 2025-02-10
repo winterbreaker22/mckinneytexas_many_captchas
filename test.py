@@ -115,7 +115,6 @@ async def main():
         await home_page.fill("#matchcode", card_number)
         await home_page.click("#logOn .buttons .originButton > span > span")
 
-        await asyncio.sleep(1)
         await home_page.mouse.click(150, 150)
 
         await home_page.wait_for_selector("text='U.S. Businesses'")
@@ -124,7 +123,7 @@ async def main():
         await home_page.wait_for_selector("text='Advanced Search'")
         await home_page.click("text='Advanced Search'")
 
-        await home_page.wait_for_selector("a.greenMedium")
+        await asyncio.sleep(1)
         await home_page.click("a.greenMedium")
 
         await home_page.wait_for_selector(".pager .page")
@@ -138,7 +137,7 @@ async def main():
                 print("Captcha!!!")
                 token = await extract_and_solve_hcaptcha(home_page, API_KEY)
                 print(f"token: {token}")
-                await home_page.fill("#h-captcha-response-0dkcubkxs2du", token)
+                await home_page.fill("textarea[name='h-captcha-response']", token)
             
             result_exist = await home_page.locator("#searchResultsHeader").count()
             if result_exist > 0:
