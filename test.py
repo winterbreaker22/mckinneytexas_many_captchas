@@ -14,101 +14,72 @@ print ("solver: ", solver)
 card_number = '29882001815412'
 
 
-async def extract_request_key(page):
+def extract_and_solve_hcaptcha(page: Page, api_key: str):
     try:
-        js_code = """
-        let requestKeys = [];
-        let bodyContent = document.body.innerHTML;
+        page.wait_for_load_state("networkidle")
+        
+        iframe_elements = page.query_selector_all("iframe[src*='hcaptcha.com']")
+        sitekey = None
 
-        // Regex to capture 'requestKey' in the format requestKey: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
-        let regex = /requestKey\\s*[:=]\\s*'(\\w{32})'/g;
+        for iframe in iframe_elements:
+            iframe_src = iframe.get_attribute("src")
+            if iframe_src:
+                match = re.search(r"sitekey=([a-f0-9\-]{36})", iframe_src)
+                if match:
+                    sitekey = match.group(1)
+                    print(f"Found hCaptcha sitekey: {sitekey}")
+                    break
 
-        // Find all matches in the body content
-        let matches;
-        while ((matches = regex.exec(bodyContent)) !== null) {
-            requestKeys.push(matches[1]);
-        }
-
-        // Now search inline JavaScript code inside <script> tags
-        let scriptTags = document.getElementsByTagName('script');
-
-        for (let script of scriptTags) {
-            if (script.innerHTML) {
-                let scriptMatches;
-                while ((scriptMatches = regex.exec(script.innerHTML)) !== null) {
-                    requestKeys.push(scriptMatches[1]);
-                }
-            }
-        }
-
-        // Ensure unique keys
-        requestKeys = [...new Set(requestKeys)];
-
-        // Return all found requestKeys
-        requestKeys;
-        """
-
-        request_keys = await page.evaluate(js_code)
-
-        if not request_keys:
-            print("No requestKeys found.")
+        if not sitekey:
+            print("Sitekey not found.")
             return None
 
-        print(f"All found requestKeys: {request_keys}")
+        site_url = page.url
+        print(f"Site Url: {site_url}")
 
-        url = page.url
-        temp_key = url.split("/")[-1]  
+        captcha_request_payload = {
+            "key": api_key,  
+            "method": "hcaptcha", 
+            "sitekey": sitekey,  
+            "pageurl": site_url,  
+            "json": 1  
+        }
 
-        filtered_keys = [key for key in request_keys if key != temp_key]
+        captcha_request_response = requests.post("http://2captcha.com/in.php", data=captcha_request_payload)
+        captcha_request_result = captcha_request_response.json()
 
-        if filtered_keys:
-            print(f"Filtered requestKeys (excluding temp_key): {filtered_keys}")
-        else:
-            print("No valid requestKeys found after filtering.")
+        if captcha_request_result.get("status") != 1:
+            print(f"Error sending captcha to 2Captcha: {captcha_request_result}")
+            return None
 
-        return filtered_keys 
+        captcha_id = captcha_request_result.get("request")
+        print(f"Captcha submitted. ID: {captcha_id}")
+
+        while True:
+            solution_payload = {
+                "key": api_key,
+                "action": "get",
+                "id": captcha_id,
+                "json": 1
+            }
+
+            solution_response = requests.get("http://2captcha.com/res.php", params=solution_payload)
+            solution_result = solution_response.json()
+
+            if solution_result.get("status") == 1:
+                captcha_solution = solution_result.get("request")
+                print(f"Captcha solved: {captcha_solution}")
+                return captcha_solution
+            elif solution_result.get("request") == "CAPCHA_NOT_READY":
+                time.sleep(5)  
+            else:
+                print(f"Error solving captcha: {solution_result}")
+                return None
 
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
 
-
-def bypass_hcaptcha(api_key, site_url, site_key):
-    try:
-        payload = {
-            "key": api_key,
-            "method": "recaptcha",
-            "sitekey": site_key,
-            "pageurl": site_url,
-            "json": 1
-        }
-        response = requests.post("http://2captcha.com/in.php", data=payload)
-        result = response.json()
-        print ("result: ", result)
-
-        if result["status"] != 1:
-            raise Exception(f"Error sending captcha to 2Captcha: {result['request']}")
-
-        captcha_id = result["request"]
-        print(f"Captcha ID: {captcha_id}")
-
-        for _ in range(30): 
-            time.sleep(5)  
-            res = requests.get(f"http://2captcha.com/res.php?key={api_key}&action=get&id={captcha_id}&json=1")
-            result = res.json()
-
-            if result["status"] == 1:
-                print(f"Solved captcha token: {result['request']}")
-                return result["request"]  
-            elif result["request"] != "CAPCHA_NOT_READY":
-                raise Exception(f"Error solving captcha: {result['request']}")
-
-        raise Exception("Failed to get captcha solution in time.")
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        raise e
-    
 
 async def main():
     login_url = f'https://www.mckinneytexas.org/116/Library'
@@ -165,11 +136,8 @@ async def main():
             captcha_exist = await home_page.locator("#hcaptcha").count()
             if captcha_exist > 0:
                 print("Captcha!!!")
-                page_url = home_page.url
-                site_keys = await extract_request_key(home_page)
-                print ("sitekey: ", site_keys[0])
-                print("page url: ", page_url)
-                token = bypass_hcaptcha(API_KEY, page_url, site_keys[0])
+                token = await extract_and_solve_hcaptcha(home_page, API_KEY)
+                print("token: {token}")
             
             result_exist = await home_page.locator("#searchResultsHeader").count()
             if result_exist > 0:
