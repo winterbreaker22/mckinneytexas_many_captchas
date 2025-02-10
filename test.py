@@ -146,6 +146,7 @@ async def main():
                     'captcha => document.getElementsByName("h-captcha-response")[0].innerHTML = captcha;',
                     token,
                 )
+                await asyncio.sleep(1)
 
             result_exist = await home_page.locator("#searchResultsHeader").count()
             if result_exist > 0:
