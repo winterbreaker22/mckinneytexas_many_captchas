@@ -145,12 +145,12 @@ async def main():
                 # Inject JavaScript to override the CSS and make the textarea visible
                 # Ensure the element is visible before setting the value
                 await home_page.evaluate('captcha => { '
-                                    'let element = document.getElementById("h-captcha-response-0dkcubkxs2du"); '
-                                    'if (element && getComputedStyle(element).display !== "none" && '
-                                    'getComputedStyle(element).visibility !== "hidden") { '
-                                    'element.innerHTML = captcha; '
-                                    '} '
-                                    '}', token)
+                    'let textarea = document.querySelector("textarea[name=\'h-captcha-response\']"); '
+                    'if (textarea && getComputedStyle(textarea).display !== "none" && '
+                    'getComputedStyle(textarea).visibility !== "hidden") { '
+                    'textarea.value = captcha; '
+                    '} '
+                    '}', token)
 
                 # await home_page.evaluate("""
                 #     let textarea = document.querySelector("textarea[name='h-captcha-response']");
