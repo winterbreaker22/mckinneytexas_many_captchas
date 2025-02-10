@@ -142,12 +142,17 @@ async def main():
                 token = await extract_and_solve_hcaptcha(home_page, API_KEY)
                 print(f"token: {token}")
                 
-                visible_textarea = home_page.locator("textarea[name='h-captcha-response']:visible")
-                print (f"visible text area: {visible_textarea}")
-                if await visible_textarea.count() > 0:
-                    print ("exist!!!!!")
-                    print (f"1st element: {visible_textarea[0]}")
-                    await visible_textarea[0].fill(token)
+                await home_page.evaluate(
+                    """
+                    (token) => {
+                        const textarea = document.querySelector("textarea[name='h-captcha-response']");
+                        if (textarea) {
+                            textarea.value = token;  // Set the token value
+                        }
+                    }
+                    """,
+                    token
+                )
 
             result_exist = await home_page.locator("#searchResultsHeader").count()
             if result_exist > 0:
