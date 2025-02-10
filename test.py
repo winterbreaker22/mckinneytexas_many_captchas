@@ -139,9 +139,9 @@ async def main():
                 print(f"token: {token}")
                 
                 await home_page.wait_for_selector("textarea[name='h-captcha-response']", state="visible")
-                textarea = await home_page.query_selector_all("textarea[name='h-captcha-response']")
+                textarea = await home_page.query_selector("textarea[name='h-captcha-response']")
                 if textarea:
-                    await textarea[0].fill(token)
+                    await textarea.fill(token)
                     await asyncio.sleep(2)
 
             result_exist = await home_page.locator("#searchResultsHeader").count()
