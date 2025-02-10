@@ -148,6 +148,9 @@ async def main():
                         const textarea = document.querySelector("textarea[name='h-captcha-response']");
                         if (textarea) {
                             textarea.value = token;  // Set the token value
+                            console.log('Token successfully set to:', textarea.value);  // Debug log
+                        } else {
+                            console.log('Textarea not found!');
                         }
                     }
                     """,
