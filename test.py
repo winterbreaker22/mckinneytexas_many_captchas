@@ -138,9 +138,7 @@ async def main():
                 token = await extract_and_solve_hcaptcha(home_page, API_KEY)
                 print(f"token: {token}")
                 
-                iframe_element = await home_page.query_selector("iframe")
-                iframe = await iframe_element.content_frame()
-                textarea = await iframe.query_selector("textarea#h-captcha-response-0dkcubkxs2du")
+                textarea = await home_page.query_selector("textarea#h-captcha-response-0dkcubkxs2du")
                 await textarea.fill(token)
                 await asyncio.sleep(2)
 
