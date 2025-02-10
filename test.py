@@ -143,18 +143,8 @@ async def main():
                 print(f"token: {token}")
                 
                 await home_page.evaluate(
-                    """
-                    (token) => {
-                        const textarea = document.querySelector("textarea[name='h-captcha-response']");
-                        if (textarea) {
-                            textarea.value = token;  // Set the token value
-                            console.log('Token successfully set to:', textarea.value);  // Debug log
-                        } else {
-                            console.log('Textarea not found!');
-                        }
-                    }
-                    """,
-                    token
+                    'captcha => document.getElementsByName("h-captcha-response")[0].innerHTML = captcha;',
+                    token,
                 )
 
             result_exist = await home_page.locator("#searchResultsHeader").count()
