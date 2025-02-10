@@ -77,13 +77,14 @@ def bypass_hcaptcha(api_key, site_url, site_key):
     try:
         payload = {
             "key": api_key,
-            "method": "hcaptcha",
+            "method": "recaptcha",
             "sitekey": site_key,
             "pageurl": site_url,
             "json": 1
         }
         response = requests.post("http://2captcha.com/in.php", data=payload)
         result = response.json()
+        print ("result: ", result)
 
         if result["status"] != 1:
             raise Exception(f"Error sending captcha to 2Captcha: {result['request']}")
