@@ -142,23 +142,10 @@ async def main():
                 token = await extract_and_solve_hcaptcha(home_page, API_KEY)
                 print(f"token: {token}")
                 
-                # Inject JavaScript to override the CSS and make the textarea visible
-                # Ensure the element is visible before setting the value
-                await home_page.evaluate('captcha => { '
-                    'let textarea = document.querySelector("textarea[name=\'h-captcha-response\']"); '
-                    'if (textarea && getComputedStyle(textarea).display !== "none" && '
-                    'getComputedStyle(textarea).visibility !== "hidden") { '
-                    'textarea.value = captcha; '
-                    '} '
-                    '}', token)
-
-                # await home_page.evaluate("""
-                #     let textarea = document.querySelector("textarea[name='h-captcha-response']");
-                #     if (textarea) {
-                #         textarea.style.visibility = 'visible';  
-                #         textarea.value = '{token}'; 
-                #     }
-                # """)
+                visible_textarea = home_page.locator("textarea[name='h-captcha-response']:visible")
+                print (f"visible text area: {visible_textarea}")
+                if await visible_textarea.count() > 0:
+                    await visible_textarea[0].fill(token)
 
             result_exist = await home_page.locator("#searchResultsHeader").count()
             if result_exist > 0:
