@@ -137,7 +137,8 @@ async def main():
             if captcha_exist > 0:
                 print("Captcha!!!")
                 token = await extract_and_solve_hcaptcha(home_page, API_KEY)
-                print("token: {token}")
+                print(f"token: {token}")
+                await home_page.fill("#h-captcha-response-0dkcubkxs2du", token)
             
             result_exist = await home_page.locator("#searchResultsHeader").count()
             if result_exist > 0:
