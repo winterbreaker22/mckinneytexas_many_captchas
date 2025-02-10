@@ -71,7 +71,7 @@ async def extract_and_solve_hcaptcha(page: Page, api_key: str):
                 print(f"Captcha solved: {captcha_solution}")
                 return captcha_solution
             elif solution_result.get("request") == "CAPCHA_NOT_READY":
-                await asyncio.sleep(5) 
+                await asyncio.sleep(2) 
             else:
                 print(f"Error solving captcha: {solution_result}")
                 return None
@@ -79,7 +79,6 @@ async def extract_and_solve_hcaptcha(page: Page, api_key: str):
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
-
 
 async def main():
     login_url = f'https://www.mckinneytexas.org/116/Library'
@@ -138,8 +137,13 @@ async def main():
                 print("Captcha!!!")
                 token = await extract_and_solve_hcaptcha(home_page, API_KEY)
                 print(f"token: {token}")
-                await home_page.fill("textarea[name='h-captcha-response']", token)
-            
+                
+                iframe_element = await home_page.query_selector("iframe")
+                iframe = await iframe_element.content_frame()
+                textarea = await iframe.query_selector("textarea#h-captcha-response-0dkcubkxs2du")
+                await textarea.fill(token)
+                await asyncio.sleep(2)
+
             result_exist = await home_page.locator("#searchResultsHeader").count()
             if result_exist > 0:
                 await home_page.click("#searchResultsHeader #checkboxCol")
