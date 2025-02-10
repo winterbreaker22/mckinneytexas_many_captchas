@@ -133,6 +133,7 @@ async def main():
 
         for i in range(10):
             captcha_exist = await home_page.locator("#hcaptcha").count()
+            print (f"captcha count: {captcha_exist}")
             if captcha_exist > 0:
                 print("Captcha!!!")
                 token = await extract_and_solve_hcaptcha(home_page, API_KEY)
