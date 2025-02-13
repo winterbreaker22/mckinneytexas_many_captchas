@@ -203,4 +203,5 @@ async def main():
         save_page_number(page_number)
 
 ensure_playwright_browsers()
+os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "0"
 asyncio.run(main())
