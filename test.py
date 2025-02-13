@@ -184,7 +184,7 @@ async def main():
             await asyncio.sleep(5)
 
             download = await download_info.value
-            new_filename = f"{str(page_number)}.pdf"  
+            new_filename = f"{str(page_number + 9)}.csv"  
             os.makedirs(download_directory, exist_ok=True)
             file_path = os.path.join(download_directory, new_filename)
             await download.save_as(file_path)
