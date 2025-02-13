@@ -95,10 +95,6 @@ async def extract_and_solve_hcaptcha(page: Page, api_key: str):
 
 async def main():
     page_number = load_page_number()
-    if not page_number or page_number == 0:
-        page_number = 1
-        save_page_number(page_number)
-
     login_url = f'https://www.mckinneytexas.org/116/Library'
 
     while page_number < 732431:
