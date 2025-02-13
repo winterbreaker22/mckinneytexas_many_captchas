@@ -142,25 +142,26 @@ async def main():
                 token = await extract_and_solve_hcaptcha(home_page, API_KEY)
                 print(f"token: {token}")
                 
-                await home_page.evaluate(
-                    '''
-                    (captcha) => {
-                        const gRecaptcha = document.getElementsByName("g-recaptcha-response")[0];
-                        const hCaptcha = document.getElementsByName("h-captcha-response")[0];
-                        if (gRecaptcha) {
-                            gRecaptcha.innerHTML = captcha;
-                            gRecaptcha.dispatchEvent(new Event('input', { bubbles: true })); // Trigger input event
-                            gRecaptcha.dispatchEvent(new Event('change', { bubbles: true })); // Trigger change event
-                        }
-                        if (hCaptcha) {
-                            hCaptcha.innerHTML = captcha;
-                            hCaptcha.dispatchEvent(new Event('input', { bubbles: true })); // Trigger input event
-                            hCaptcha.dispatchEvent(new Event('change', { bubbles: true })); // Trigger change event
-                        }
-                    }
-                    ''',
-                    token,
-                )
+                # await home_page.evaluate(
+                #     '''
+                #     (captcha) => {
+                #         const gRecaptcha = document.getElementsByName("g-recaptcha-response")[0];
+                #         const hCaptcha = document.getElementsByName("h-captcha-response")[0];
+                #         if (gRecaptcha) {
+                #             gRecaptcha.innerHTML = captcha;
+                #             gRecaptcha.dispatchEvent(new Event('input', { bubbles: true })); // Trigger input event
+                #             gRecaptcha.dispatchEvent(new Event('change', { bubbles: true })); // Trigger change event
+                #         }
+                #         if (hCaptcha) {
+                #             hCaptcha.innerHTML = captcha;
+                #             hCaptcha.dispatchEvent(new Event('input', { bubbles: true })); // Trigger input event
+                #             hCaptcha.dispatchEvent(new Event('change', { bubbles: true })); // Trigger change event
+                #         }
+                #     }
+                #     ''',
+                #     token,
+                # )
+                await home_page.evaluate(f"onCaptchaSubmit('{token}');")
                 await asyncio.sleep(1)
 
             result_exist = await home_page.locator("#searchResultsHeader").count()
