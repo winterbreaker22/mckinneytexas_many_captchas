@@ -1,6 +1,7 @@
 import asyncio
 import requests
 import re
+import os
 from playwright.async_api import async_playwright
 from playwright.async_api import Page
 from twocaptcha import TwoCaptcha
@@ -142,25 +143,6 @@ async def main():
                 token = await extract_and_solve_hcaptcha(home_page, API_KEY)
                 print(f"token: {token}")
                 
-                # await home_page.evaluate(
-                #     '''
-                #     (captcha) => {
-                #         const gRecaptcha = document.getElementsByName("g-recaptcha-response")[0];
-                #         const hCaptcha = document.getElementsByName("h-captcha-response")[0];
-                #         if (gRecaptcha) {
-                #             gRecaptcha.innerHTML = captcha;
-                #             gRecaptcha.dispatchEvent(new Event('input', { bubbles: true })); // Trigger input event
-                #             gRecaptcha.dispatchEvent(new Event('change', { bubbles: true })); // Trigger change event
-                #         }
-                #         if (hCaptcha) {
-                #             hCaptcha.innerHTML = captcha;
-                #             hCaptcha.dispatchEvent(new Event('input', { bubbles: true })); // Trigger input event
-                #             hCaptcha.dispatchEvent(new Event('change', { bubbles: true })); // Trigger change event
-                #         }
-                #     }
-                #     ''',
-                #     token,
-                # )
                 await home_page.evaluate(f"onCaptchaSubmit('{token}');")
                 await asyncio.sleep(1)
 
@@ -174,9 +156,19 @@ async def main():
         await home_page.click('#searchResults .menuPagerBar a.download')
         await home_page.wait_for_selector("#detailDetail")
         await home_page.click("#detailDetail")
-        await home_page.click("text='Download Records'")
 
-        print ('Congratulations!')
+        async with home_page.expect_download() as download_info:
+            await home_page.click("text='Download Records'")
+        await asyncio.sleep(5)
+
+        download = await download_info.value
+        download_directory = "downloads"
+        new_filename = "my_renamed_file.pdf"  
+        os.makedirs(download_directory, exist_ok=True)
+        file_path = os.path.join(download_directory, new_filename)
+        await download.save_as(file_path)
+
+        print(f"File downloaded and saved as: {file_path}")
 
         await browser.close()
 
