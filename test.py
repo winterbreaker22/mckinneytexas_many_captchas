@@ -3,8 +3,8 @@ import requests
 import re
 import os
 import sys
+import subprocess
 from playwright.async_api import async_playwright
-from playwright._driver import get_driver
 from playwright.async_api import Page
 from twocaptcha import TwoCaptcha
 
@@ -15,8 +15,8 @@ card_number = '29882001815412'
 PAGE_NUMBER_FILE = "PN"
 
 async def ensure_playwright_browsers():
-    driver = get_driver()
-    await driver.install()
+    if not os.path.exists(os.path.expanduser("~/.cache/ms-playwright")):  
+    subprocess.run(["playwright", "install"], shell=True)
 
 def save_page_number(page_number):
     with open(PAGE_NUMBER_FILE, "w") as file:
