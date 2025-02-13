@@ -164,6 +164,7 @@ async def main():
                 await home_page.evaluate(f"onCaptchaSubmit('{token}');")
                 await asyncio.sleep(1)
 
+            await home_page.wait_for_selector("#searchResultsHeader")
             result_exist = await home_page.locator("#searchResultsHeader").count()
             if result_exist > 0:
                 await home_page.click("#searchResultsHeader #checkboxCol")
