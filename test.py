@@ -31,6 +31,17 @@ def load_page_number():
     except (FileNotFoundError, ValueError):
         return 1
 
+async def safe_click(page: Page, selector, max_retries=3, wait_time=3):
+    for attempt in range(max_retries):
+        try:
+            await page.wait_for_selector(selector, timeout=10000)
+            await page.click(selector)
+            return  
+        except TimeoutError:
+            print(f"Attempt {attempt+1}: Element {selector} not found. Retrying in {wait_time} seconds...")
+            await asyncio.sleep(wait_time)
+    print(f"Failed to click {selector} after {max_retries} attempts.")
+
 def send_captcha_request(api_key: str, sitekey: str, site_url: str):
     captcha_request_payload = {
         "key": api_key,  
@@ -106,7 +117,7 @@ async def main():
 
     while page_number < 732431:
         async with async_playwright() as p:
-            browser = await p.firefox.launch(headless=False)
+            browser = await p.firefox.launch(headless=False, slow_mo=500)
             context = await browser.new_context()
 
             start_page = await context.new_page()
@@ -129,8 +140,8 @@ async def main():
             home_page = await home_page_info.value
             await home_page.wait_for_load_state()
             await home_page.wait_for_selector("#chkAgree")
-            await home_page.click("#chkAgree")
-            await home_page.click(".action-agree")
+            await safe_click(home_page, "#chkAgree", max_retries=3, wait_time=3)
+            await safe_click(home_page, ".action-agree", max_retries=3, wait_time=3)
             await home_page.wait_for_selector("#matchcode")
             await home_page.fill("#matchcode", card_number)
             await home_page.click("#logOn .buttons .originButton > span > span")
@@ -144,11 +155,11 @@ async def main():
             await home_page.wait_for_selector("text='Advanced Search'")
             await home_page.click("text='Advanced Search'")
 
-            await asyncio.sleep(1)
-            no_record_type_selected = await home_page.locator("text='No Record Type Selected'").count()
-            if no_record_type_selected > 0:
-                await home_page.click("text='OK'")
-            await home_page.click("a.greenMedium")
+            await asyncio.sleep(3)
+            checkbox_selector = "#VerifiedOnly"  
+            if not home_page.is_checked(checkbox_selector):
+                home_page.check(checkbox_selector)
+            await safe_click(home_page, "a.greenMedium", max_retries=3, wait_time=3)
 
             await home_page.wait_for_selector("#searchResults .menuPagerBar .pager .page")
             await home_page.click("#searchResults .menuPagerBar .pager .page")
@@ -176,7 +187,6 @@ async def main():
             await home_page.click('#searchResults .menuPagerBar a.download')
             await home_page.wait_for_selector("#detailDetail")
             await home_page.click("#detailDetail")
-
 
             if getattr(sys, 'frozen', False):  # Running as an EXE
                 base_directory = os.path.dirname(sys.executable)
