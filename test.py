@@ -4,6 +4,7 @@ import re
 import os
 import sys
 from playwright.async_api import async_playwright
+from playwright._driver import get_driver
 from playwright.async_api import Page
 from twocaptcha import TwoCaptcha
 
@@ -12,6 +13,10 @@ solver = TwoCaptcha(API_KEY)
 print ("solver: ", solver)
 card_number = '29882001815412'
 PAGE_NUMBER_FILE = "PN"
+
+async def ensure_playwright_browsers():
+    driver = get_driver()
+    await driver.install()
 
 def save_page_number(page_number):
     with open(PAGE_NUMBER_FILE, "w") as file:
@@ -195,4 +200,5 @@ async def main():
         page_number = page_number + 10
         save_page_number(page_number)
 
+asyncio.run(ensure_playwright_browsers())
 asyncio.run(main())
