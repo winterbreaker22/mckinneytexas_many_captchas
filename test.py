@@ -144,9 +144,9 @@ async def main():
                 await home_page.click("text='OK'")
             await home_page.click("a.greenMedium")
 
-            await home_page.wait_for_selector(".pager .page")
-            await home_page.click(".pager .page")
-            await home_page.fill(".pager input[type='text']", str(page_number))
+            await home_page.wait_for_selector("#searchResults .menuPagerBar .pager .page")
+            await home_page.click("#searchResults .menuPagerBar .pager .page")
+            await home_page.fill("#searchResults .menuPagerBar .pager input[type='text']", str(page_number))
             await home_page.keyboard.press("Enter")
 
             for i in range(10):
@@ -164,7 +164,7 @@ async def main():
                 result_exist = await home_page.locator("#searchResultsHeader").count()
                 if result_exist > 0:
                     await home_page.click("#searchResultsHeader #checkboxCol")
-                    await home_page.click(".pager .next")
+                    await home_page.click("#searchResults .menuPagerBar .pager .next")
                     await asyncio.sleep(2)
 
             await home_page.click('#searchResults .menuPagerBar a.download')
