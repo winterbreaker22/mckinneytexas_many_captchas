@@ -113,7 +113,6 @@ async def main():
             await start_page.goto(login_url)
 
             await start_page.wait_for_selector("text='Research & Learn'")
-            await start_page.click("text='Research & Learn'")
 
             async with context.expect_page() as resource_list_page_info:
                 await start_page.click("text='Research & Learn'")  
@@ -165,7 +164,7 @@ async def main():
                     print(f"token: {token}")
                     
                     await home_page.evaluate(f"onCaptchaSubmit('{token}');")
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(3)
 
                 await home_page.wait_for_selector("#searchResultsHeader")
                 result_exist = await home_page.locator("#searchResultsHeader").count()
