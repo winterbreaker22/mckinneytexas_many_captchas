@@ -149,8 +149,8 @@ async def main():
             await asyncio.sleep(1)
             await home_page.mouse.click(150, 150)
 
-            await home_page.wait_for_selector("#UsBusiness")
-            await home_page.click("#UsBusiness > h5")
+            await home_page.wait_for_selector("li#UsBusiness > h5")
+            await home_page.click("li#UsBusiness > h5")
             
             await home_page.wait_for_selector("text='Advanced Search'")
             await home_page.click("text='Advanced Search'")
