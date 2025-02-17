@@ -161,9 +161,9 @@ async def main():
                 home_page.check(checkbox_selector)
             await safe_click(home_page, "a.greenMedium", max_retries=3, wait_time=3)
 
-            await home_page.wait_for_selector("#searchResults .menuPagerBar .pager .page")
-            await home_page.click("#searchResults .menuPagerBar .pager .page")
-            await home_page.fill("#searchResults .menuPagerBar .pager input[type='text']", str(page_number))
+            await home_page.wait_for_selector("#searchResults .menuPagerBar:first-of-type .pager .page")
+            await home_page.click("#searchResults .menuPagerBar:first-of-type .pager .page")
+            await home_page.fill("#searchResults .menuPagerBar:first-of-type .pager input[type='text']", str(page_number))
             await home_page.keyboard.press("Enter")
 
             for i in range(10):
@@ -180,13 +180,13 @@ async def main():
                 await home_page.wait_for_selector("#searchResultsHeader")
                 result_exist = await home_page.locator("#searchResultsHeader").count()
                 if result_exist > 0:
-                    next_button = home_page.locator("#searchResults .menuPagerBar .pager .next")
+                    next_button = home_page.locator("#searchResults .menuPagerBar:first-of-type .pager .next")
                     await next_button.scroll_into_view_if_needed()    
                     await home_page.click("#searchResultsHeader #checkboxCol")
                     await next_button.click(force=True)
                     await asyncio.sleep(2)
 
-            await home_page.click('#searchResults .menuPagerBar a.download')
+            await home_page.click('#searchResults .menuPagerBar:first-of-type a.download')
             await home_page.wait_for_selector("#detailDetail")
             await home_page.click("#detailDetail")
 
