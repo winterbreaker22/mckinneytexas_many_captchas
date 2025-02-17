@@ -180,8 +180,7 @@ async def main():
                 await home_page.wait_for_selector("#searchResultsHeader")
                 result_exist = await home_page.locator("#searchResultsHeader").count()
                 if result_exist > 0:
-                    next_buttons = home_page.query_selector_all("#searchResults .menuPagerBar .pager .next")
-                    next_button = next_buttons[0]
+                    next_button = home_page.locator("#searchResults .menuPagerBar .pager .next")
                     await next_button.scroll_into_view_if_needed()    
                     await home_page.click("#searchResultsHeader #checkboxCol")
                     await next_button.click(force=True)
