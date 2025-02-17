@@ -180,8 +180,10 @@ async def main():
                 await home_page.wait_for_selector("#searchResultsHeader")
                 result_exist = await home_page.locator("#searchResultsHeader").count()
                 if result_exist > 0:
+                    next_button = home_page.locator("#searchResults .menuPagerBar .pager .next")
+                    await next_button.scroll_into_view_if_needed()    
                     await home_page.click("#searchResultsHeader #checkboxCol")
-                    await home_page.click("#searchResults .menuPagerBar .pager .next")
+                    await next_button.click(force=True)
                     await asyncio.sleep(2)
 
             await home_page.click('#searchResults .menuPagerBar a.download')
