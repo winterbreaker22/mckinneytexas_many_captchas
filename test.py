@@ -170,6 +170,7 @@ async def main():
             await home_page.keyboard.press("Enter")
 
             for i in range(10):
+                await asyncio.sleep(2)
                 captcha_exist = await home_page.locator("#hcaptcha").count()
                 if captcha_exist > 0:
                     token = await extract_and_solve_hcaptcha(home_page, API_KEY)                    
