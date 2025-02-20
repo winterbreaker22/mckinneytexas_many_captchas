@@ -122,38 +122,41 @@ async def main():
 
             start_page = await context.new_page()
             await start_page.goto(login_url)
+            await asyncio.sleep(2)
 
             await start_page.wait_for_selector("text='Research & Learn'")
 
             async with context.expect_page() as resource_list_page_info:
-                await start_page.click("text='Research & Learn'")  
+                await safe_click(start_page, "text='Research & Learn'", max_retries=3, wait_time=3)  
             resource_list_page = await resource_list_page_info.value
+            await asyncio.sleep(2)
             await resource_list_page.wait_for_load_state()
             await resource_list_page.wait_for_selector("#main-content")
 
-            await resource_list_page.click("#main-content .col-xs-12 > .row > .col-xs-4:nth-of-type(3) a img")
+            await safe_click(resource_list_page, "#main-content .col-xs-12 > .row > .col-xs-4:nth-of-type(3) a img", max_retries=3, wait_time=3)
 
             await resource_list_page.wait_for_selector("text='Open Resource'")
 
             async with context.expect_page() as home_page_info:
-                await resource_list_page.click("text='Open Resource'")
+                await safe_click(resource_list_page, "text='Open Resource'", max_retries=3, wait_time=3)
             home_page = await home_page_info.value
+            await asyncio.sleep(2)
             await home_page.wait_for_load_state()
             await home_page.wait_for_selector("#chkAgree")
             await safe_click(home_page, "#chkAgree", max_retries=3, wait_time=3)
             await safe_click(home_page, ".action-agree", max_retries=3, wait_time=3)
             await home_page.wait_for_selector("#matchcode")
             await home_page.fill("#matchcode", card_number)
-            await home_page.click("#logOn .buttons .originButton > span > span")
+            await safe_click(home_page, "#logOn .buttons .originButton > span > span", max_retries=3, wait_time=3)
 
-            await asyncio.sleep(2)
+            await asyncio.sleep(3)
             await home_page.mouse.click(150, 150)
 
             await home_page.wait_for_selector("div#content div#searchInterface ul.Databases li#UsBusiness > h5")
-            await home_page.click("div#content div#searchInterface ul.Databases li#UsBusiness > h5")
+            await safe_click(home_page, "div#content div#searchInterface ul.Databases li#UsBusiness > h5", max_retries=3, wait_time=3)
             
             await home_page.wait_for_selector("text='Advanced Search'")
-            await home_page.click("text='Advanced Search'")
+            await safe_click(home_page, "text='Advanced Search'", max_retries=3, wait_time=3)
 
             await asyncio.sleep(3)
             checkbox_selector = "#VerifiedOnly"  
@@ -168,27 +171,24 @@ async def main():
 
             for i in range(10):
                 captcha_exist = await home_page.locator("#hcaptcha").count()
-                print (f"captcha count: {captcha_exist}")
                 if captcha_exist > 0:
-                    print("Captcha!!!")
-                    token = await extract_and_solve_hcaptcha(home_page, API_KEY)
-                    print(f"token: {token}")
-                    
+                    token = await extract_and_solve_hcaptcha(home_page, API_KEY)                    
                     await home_page.evaluate(f"onCaptchaSubmit('{token}');")
-                    await asyncio.sleep(3)
+                    await asyncio.sleep(5)
 
                 await home_page.wait_for_selector("#searchResultsHeader")
                 result_exist = await home_page.locator("#searchResultsHeader").count()
                 if result_exist > 0:
                     next_button = home_page.locator("#searchResults .menuPagerBar:first-of-type .pager .next")
                     await next_button.scroll_into_view_if_needed()    
-                    await home_page.click("#searchResultsHeader #checkboxCol")
+                    await safe_click(home_page, "#searchResultsHeader #checkboxCol", max_retries=3, wait_time=3)
+                    await asyncio.sleep(2)
                     await next_button.click(force=True)
                     await asyncio.sleep(2)
 
-            await home_page.click('#searchResults .menuPagerBar:first-of-type a.download')
+            await safe_click(home_page, '#searchResults .menuPagerBar:first-of-type a.download', max_retries=3, wait_time=3)
             await home_page.wait_for_selector("#detailDetail")
-            await home_page.click("#detailDetail")
+            await safe_click(home_page, "#detailDetail", max_retries=3, wait_time=3)
 
             if getattr(sys, 'frozen', False):  # Running as an EXE
                 base_directory = os.path.dirname(sys.executable)
@@ -198,7 +198,7 @@ async def main():
             download_directory = os.path.join(base_directory, "downloads")
             os.makedirs(download_directory, exist_ok=True)  
             async with home_page.expect_download() as download_info:
-                await home_page.click("text='Download Records'")
+                await safe_click(home_page, "text='Download Records'", max_retries=3, wait_time=3)
             await asyncio.sleep(5)
 
             download = await download_info.value
